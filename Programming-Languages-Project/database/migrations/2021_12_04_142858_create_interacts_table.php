@@ -15,10 +15,15 @@ class CreateInteractsTable extends Migration
     {
         Schema::create('interacts', function (Blueprint $table) {
             $table->id();
-            $table->string('user_id');
-            $table->string('interact');
-            $table->string('item_id');
+            $table->integer('user_id')->unsigned()->index();
+            $table->integer('interact');
+            $table->integer('item_id');
             $table->timestamps();
+
+
+            $table->foreign('user_id')
+            ->references('id')->on('users')
+            ->onDelete('cascade');
         });
     }
 
