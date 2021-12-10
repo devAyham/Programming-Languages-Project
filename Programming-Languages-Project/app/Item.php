@@ -20,16 +20,18 @@ class Item extends Model
     protected $fillable = ['contact_information','expiration_date','quantity','price','new_price','views'];
     public $translatedAttributes = ['title'];
 
-    public function categories(){
-        return $this->belongsToMany('App\Category');
-    }
-    public function images(){
-        return $this->hasMany('App\ItemImage');
-    }
+    // public function categories(){
+    //     return $this->belongsToMany('App\Category');
+    // }
+    // public function images(){
+    //     return $this->hasMany('App\ItemImage');
+    // }
 
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
+    public function categories() {
+        return $this->belongsTo(Category::class );
+    }
 }
