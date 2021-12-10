@@ -15,6 +15,6 @@ class Category extends Model
     public $translatedAttributes = ['name'];
 
     public function items() {
-        return $this->belongsToMany('App\Item');
+        return $this->hasMany(Item::class );
     }
 }
