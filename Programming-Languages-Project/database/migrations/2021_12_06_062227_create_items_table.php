@@ -15,13 +15,26 @@ class CreateItemsTable extends Migration
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
+            //$table->integer("user_id")->unsigned();
+            $table->integer('user_id')->unsigned()->index();
+
+
             $table->string('contact_information');
             $table->string('expiration_date');
-            $table->string('quantity');
-            $table->string('price');
-            $table->string('new_price')->nullable();
-            $table->string('views')->nullable();
+            $table->integer('quantity');
+            $table->integer('price');
+            $table->integer('new_price')->nullable();
+            $table->integer('views')->default(1);
             $table->timestamps();
+
+            $table->foreign('user_id')
+            ->references('id')->on('users')
+            ->onDelete('cascade');
+
+
+        
+ 
+
         });
     }
 

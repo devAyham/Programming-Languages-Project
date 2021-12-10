@@ -27,4 +27,9 @@ class Item extends Model
         return $this->hasMany('App\ItemImage');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
 }

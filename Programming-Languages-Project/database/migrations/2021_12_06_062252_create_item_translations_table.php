@@ -17,7 +17,7 @@ class CreateItemTranslationsTable extends Migration
             $table->id();
             $table->string('title');
             $table->string('locale');
-            $table->string('item_id');
+            $table->integer('item_id');
             $table->timestamps(); 
         });
     }
