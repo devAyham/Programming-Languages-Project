@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
@@ -18,7 +19,8 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'first_name','last_name', 'email', 'password','is_email_verified','phone','type'
+        'first_name','last_name', 'email', 'password','is_email_verified','phone','type' , 
+        // 'created_at' , 'updated_at'
     ];
 
     /**
@@ -49,5 +51,8 @@ class User extends Authenticatable implements JWTSubject
     }
 
 
-   
+    public function item()
+    {
+        return $this->hasMany(Item::class, );
+    }
 }

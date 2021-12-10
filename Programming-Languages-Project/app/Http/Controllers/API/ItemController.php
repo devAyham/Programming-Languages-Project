@@ -14,6 +14,7 @@ use Validator;
 use Image;
 use Carbon\Carbon;
 use App\ItemTranslation;
+use Auth ;
 
 class ItemController extends Controller
 {
@@ -59,6 +60,16 @@ class ItemController extends Controller
             'details'  =>$items
         ]);
     }
+    public function myproducts()
+    {
+        
+        $items = Item::where('user_id' , Auth::id())->get();
+        return response()->json([
+            'status'   => '1',
+            'details'  =>$items
+        ]);
+        // return $this->sendResponse( ProductResource::collection($products) , 'all products sent');
+    }
     public function addItem(Request $request){
         $validator = Validator::make($request->all(), [
             'contact_information' => ['required'],
@@ -67,6 +78,8 @@ class ItemController extends Controller
             'price'               => ['required'],
             'item_title_ar'       => ['required'],
             'item_title_en'       => ['required'],
+            // 'created_at' => $this->created_at->format('d/m/y'),
+            // 'updated_at' => $this->created_at->format('d/m/y'),
         ]);
         if($validator->fails()){
             return response()->json([
@@ -79,7 +92,7 @@ class ItemController extends Controller
             'expiration_date'     => $request->expiration_date,
             'quantity'            => $request->quantity,
             'price'               => $request->price,
-       
+            'user_id' => Auth::id(),
             'ar' => [
                 'title'   => $request->item_title_ar,
             ],
@@ -87,7 +100,7 @@ class ItemController extends Controller
                 'title'  => $request->item_title_en,
             ]
         ];
-      
+
         $item = Item::create($data);
         $item_categories = $request->category;
         if(!$item_categories == NULL) {
@@ -119,16 +132,22 @@ class ItemController extends Controller
                 ]);
             }
         } 
-        return response()->json(['message' => 'تم اضافة المكان بنجاح']);
+        return response()->json(['message' => 'تم اضافة المنتج بنجاح']);
     }
     public function updateItem(Request $request ,$id){
-        $item = Item::where('id',$id)->first();
+        if($item = Item::where('id',$id)->where('user_id' , Auth::id())->first() === null){
+            return response()->json([
+                'status' => '0',
+                'details' => 'access denied'
+            ]);
+        }
+        $item = Item::where('id',$id)->where('user_id' , Auth::id())->first();
         $validator = Validator::make($request->all(), [
             'contact_information' => ['required'],
             'quantity'            => ['required'],
             'price'               => ['required'],
             'item_title_ar'       => ['required'],
-            'item_title_ar'       => ['required'],
+            'item_title_en'       => ['required'],
 
         ]);
         if($validator->fails()){
@@ -139,7 +158,7 @@ class ItemController extends Controller
         }
         $data = [
             'contact_information' => $request->contact_information,
-            'expiration_date'     => $request->expiration_date,
+            // 'expiration_date'     => $request->expiration_date,
             'quantity'            => $request->quantity,
             'price'               => $request->price,
             'ar' => [
@@ -150,20 +169,20 @@ class ItemController extends Controller
             ]
         ];
         $item->update($data);
-        $item_categories = CategoryItem::where('item_id',$item->id)->get();
-        foreach($item_categories as $item_category){
-            $item_category->delete();
-        }
-        $item_categories = $request->category;
-        if(!$item_categories == NULL) {
-            $items_Array = explode("," , $item_categories);
-            foreach($items_Array as $cat) {
-                CategoryItem::insert( [
-                    'category_id'=>  $cat,
-                    'item_id'=> $item->id
-                ]);
-            }
-        }
+        // $item_categories = CategoryItem::where('item_id',$item->id)->get();
+        // foreach($item_categories as $item_category){
+        //     $item_category->delete();
+        // }
+        // $item_categories = $request->category;
+        // if(!$item_categories == NULL) {
+        //     $items_Array = explode("," , $item_categories);
+        //     foreach($items_Array as $cat) {
+        //         CategoryItem::insert( [
+        //             'category_id'=>  $cat,
+        //             'item_id'=> $item->id
+        //         ]);
+        //     }
+        // }
         $items_image = ItemImage::where('item_id',$item->id)->get();
         foreach($items_image as $item_image){
             $item_image->delete();
@@ -194,7 +213,12 @@ class ItemController extends Controller
         ]);
     }
     public function deleteItem($id){
-        $item = Item::where('id',$id)->first();
+        if($item = Item::where('id',$id)->where('user_id' , Auth::id())->first() === null){
+            return response()->json([
+                'status' => '0',
+                'details' => 'access denied'
+            ]);}
+        $item = Item::where('id',$id)->where('user_id' , Auth::id())->first();
         $item->delete();
         return response()->json([
             'status'  =>'1',
@@ -202,7 +226,9 @@ class ItemController extends Controller
         ]);
     }
     public function itemDetails($id){
-        $item = Item::with('images')->with('categories')->find($id);
+        $item = Item::with('images')
+        // ->with('categories')
+        ->find($id);
         return response()->json([
             'status' =>'1',
             'details'=> $item
@@ -218,6 +244,7 @@ class ItemController extends Controller
     }
     public function itemId($id){
         $item = Item::where('id',$id)->first();
+        
         $old_views = $item->views;
         $new_views = $old_views + 1;
         $item->views = $new_views;
@@ -261,7 +288,12 @@ class ItemController extends Controller
         ]);
     }
     public function removeComment($comm_id){
-        $comment = Comment::where('id',$comm_id)->first();
+        if($comment = Comment::where('id',$comm_id)->where('user_id' , Auth::id())->first() === null){
+            return response()->json([
+                'status' => '0',
+                'details' => 'access denied' ]);    
+        }
+        $comment = Comment::where('id',$comm_id)->where('user_id' , Auth::id())->first();
         $comment->delete();
         return response()->json([
             'status' => '1',

@@ -17,7 +17,7 @@ class Item extends Model
 {
     use Translatable;
     protected $table = 'items';
-    protected $fillable = ['contact_information','expiration_date','quantity','price','new_price','views'];
+    protected $fillable = ['contact_information','expiration_date','quantity','price','new_price','views' , 'user_id' , 'created_at' , 'updated_at' ];
     public $translatedAttributes = ['title'];
 
     public function categories(){
@@ -25,6 +25,11 @@ class Item extends Model
     }
     public function images(){
         return $this->hasMany('App\ItemImage');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
 }
