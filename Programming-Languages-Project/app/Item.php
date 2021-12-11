@@ -17,7 +17,7 @@ class Item extends Model
 {
     use Translatable;
     protected $table = 'items';
-    protected $fillable = ['contact_information','expiration_date','quantity','price','new_price','views'];
+    protected $fillable = ['contact_information','expiration_date','quantity','price','new_price','views', 'user_id'];
     public $translatedAttributes = ['title'];
 
     // public function categories(){
@@ -35,3 +35,4 @@ class Item extends Model
         return $this->belongsTo(Category::class );
     }
 }
+

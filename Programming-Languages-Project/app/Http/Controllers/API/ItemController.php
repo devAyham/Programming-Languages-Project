@@ -14,51 +14,160 @@ use Validator;
 use Image;
 use Carbon\Carbon;
 use App\ItemTranslation;
+use App\Offer;
+use App\User;
+use Illuminate\Support\Facades\Auth;
 
 class ItemController extends Controller
 {
+
+    // public function __construct()
+    // {
+    //     $this->middleware('auth');
+    // }
+
     public function items(){
         $items = Item::all();
-        foreach($items as $item){
-            
-            $sub_end_date = $item->expiration_date;
-            $remaining_days = Carbon::now()->diffInDays(Carbon::parse($sub_end_date));
-            $first_offer  = $remaining_days - ($remaining_days * 30/100) ;
-            $secand_offer = $remaining_days - ($remaining_days * 50/100) ;
-            $third_offer  = $remaining_days - ($remaining_days * 70/100) ;
-            if($remaining_days ==0){
-                $item->delete();
-            }else{
-                switch ($remaining_days) {
-                    case $remaining_days < $third_offer:
-                        $price = $item->price;
-                        $new = $price * 70 /100;
-                        $new_price = $price - $new;
-                        $item->new_price = $new_price;
-                        $item->save();
-                        break;
-                    case $remaining_days >= $secand_offer && $remaining_days < $first_offer :
-                        $price = $item->price;
-                        $new = $price * 50 /100;
-                        $new_price = $price - $new;
-                        $item->new_price = $new_price;
-                        $item->save();
-                        break;                
-                    case $remaining_days >= $first_offer   :
-                        $price = $item->price;
-                        $new = $price * 30 /100;
-                        $new_price = $price - $new;
-                        $item->new_price = $new_price;
-                        $item->save();
-                        break;
-                }
-            }
-        }
+        $offers = Offer::all();
+
+        foreach($items as $item ){
+
+                    foreach( $offers as $offer)
+                    {
+                             // 25:25   50:50   75:75   30000 7500  24/12/2021  21/3/2021 100
+                    $first_Rate = $offer->First_offer; // النسبة الاولى "اصغر نسبة" من الايام تبع عمرالمنتج مثلا لما يمضى مثلا 25 بالمية من عمر المنتج
+                            $first_Discount = $offer->value_of_discount_first_offer; //قيمة الخصم بالنسبة المئوية يليي بدو يصير للمنتج
+
+                            
+                            $second_Rate = $offer->Second_offer;// النسبة الثانية  من الايام تبع عمرالمنتج مثلا لما يمضى مثلا 50 بالمية من عمر المنتج
+                            $second_Discount = $offer->value_of_discount_Second_offer;//قيمة الخصم بالنسبة المئوية يليي بدو يصير للمنتج
+
+                            
+                            $third_Rate = $offer->Third_offer;// النسبة التالتة  من الايام تبع عمرالمنتج مثلا لما يمضى مثلا 75 بالمية من عمر المنتج
+                            $Third_Discount = $offer->value_of_discount_Third_offer;//قيمة الخصم بالنسبة المئوية يليي بدو يصير للمنتج
+
+                       
+                            $Number_Of_Remaining_Day= $item->Number_Of_Remaining_Day;/*
+     هون جبت عدد ايام المنتج الكلي  من الداتا بيز 
+        مثلا هوة دخل تاريخ انتهاء الصلاحية ب 23-3-2022 وانا اليوم ب 11-12-2021 بيطرح التاريخ وبيعطيني 100 يوم وهاد ثابت ما عاديتغير قيمتو
+        هاد الحكي موجود ب تابع ادد ايتم */
+
+                            $expiration_date = $item->expiration_date;   //تاريخ انتهاء الصلاحية 
+
+                            $remaining_days = Carbon::now()->diffInDays(Carbon::parse($expiration_date));/*
+                           هون طرح تاريخ انتهاء الصلاحية من تاريخ اليوم وهاد مو ثابت وكل يوم بيتغير  
+                           يعني كم يوم باقي ليخلص مدتتو للمنتج */
+                     
+
+                            $number_of_day_for_first_offer  =$Number_Of_Remaining_Day-($Number_Of_Remaining_Day * $first_Rate /100); 
+                            $number_of_day_for_second_offer =$Number_Of_Remaining_Day-($Number_Of_Remaining_Day * $second_Rate/100);
+                            $number_of_day_for_third_offer  =$Number_Of_Remaining_Day-($Number_Of_Remaining_Day * $third_Rate /100);
+                    
+                         
+
+                            if($remaining_days ==0)
+                            {
+                                $item->delete();
+                            }
+                         
+                            else
+                            {
+                                switch ($remaining_days) 
+                                        {
+
+                                            case $remaining_days > $number_of_day_for_first_offer :
+                                                $item->new_price = $item->price; 
+                                                $item->save();
+                                                break;
+
+                                            case $remaining_days <= $number_of_day_for_first_offer && $remaining_days > $number_of_day_for_second_offer :/*
+                                                 ازا كان عدد الايام  الباقية اصغر من ايام اول فتر_عرض واكبر من تاني فترة_عرض*/
+
+                                                $price = $item->price;    //اخدت سعر المنتج من داتابيز وحطيتو بل برايس
+
+                                                $value_Discount = $price * $first_Discount /100;
+                                                       //عرفت متحول فاليو_ديسكاونت(قيمة الخصم) وقلت انو بساوي  
+                                                    //قيمة الخصم =السعر الاصلي ضرب (قيمة الخصم بل فترة الاولى ) على 100
+
+                                                $new_price = $price - $value_Discount;
+                                                    //السعر الجديد هوة السعر القديم ناقص قيمة الخصم
+
+                                                $item->new_price = $new_price;
+                                                $item->save();
+                                                    //حفظ القيمة الجديدة بل داتا بيز 
+                                                break; 
+
+
+                                              case$remaining_days <= $number_of_day_for_second_offer && $remaining_days > $number_of_day_for_third_offer :
+
+                                                $price = $item->price;    //اخدت سعر المنتج من داتابيز وحطيتو بل برايس
+
+                                                $value_Discount = $price * $second_Discount/100;  
+                                                    //عرفت متحول فاليو_ديسكاونت(قيمة الخصم) وقلت انو بساوي  
+                                                    //قيمة الخصم =السعر الاصلي ضرب (قيمة الخصم بل فترة التانية ) على 100
+                                            
+                                                $new_price = $price - $value_Discount;
+                                                    //السعر الجديد هوة السعر القديم ناقص قيمة الخصم
+
+                                                $item->new_price = $new_price; 
+                                                $item->save();
+                                                break;    
+
+                                             case $remaining_days  <= $number_of_day_for_third_offer:
+                                                $price = $item->price;
+                                                $value_Discount = $price *$Third_Discount /100;
+                                                $new_price = $price - $value_Discount;
+                                                $item->new_price = $new_price;
+                                                $item->save();
+
+                                        }
+
+                            }
+
+                     }
+    }
         return response()->json([
             'status'   => '1',
             'details'  =>$items
         ]);
     }
+/**************************************A****************************************/
+    public function add_discount(Request $request)
+    {/*
+            $validator = Validator::make($request->all(), 
+                [
+                    'First_offer'                   => ['required'],
+                    'value_of_discount_first_offer' => ['required'],
+                    'Second_offer'                  => ['required'],
+                    'value_of_discount_Second_offer'=> ['required'],
+                    'Third_offer'                   => ['required'],
+                    'value_of_discount_Third_offer' => ['required'],
+                ]);
+
+                if($validator->fails()){
+                    return response()->json([
+                        'status'       => '0',
+                        'details'      => $validator->errors(), 422
+                    ]);
+                }
+        // 
+        
+            $data_of_discount =
+                [
+                    'user_id' => 1,//هون ما عرفت جيب ال ايدي تبع الايتم  +لازم يكون اسمو ايتم_ايدي
+                'First_offer'                   => $request->First_offer,
+                'value_of_discount_first_offer' => $request->value_of_discount_first_offer,
+                'Second_offer'                  => $request->Second_offer,
+                'value_of_discount_Second_offer'=> $request->value_of_discount_Second_offer,
+                'Third_offer'                   => $request->Third_offer,
+                'value_of_discount_Third_offer' => $request->value_of_discount_Third_offer,
+                ];
+
+        $offer= Offer::create($data_of_discount);*/
+        // return response()->json(['message' => 'تم حقل الخصومات المكان بنجاح']);
+    }
+/**************************************A****************************************/
+
     public function addItem(Request $request){
         $validator = Validator::make($request->all(), [
             'contact_information' => ['required'],
@@ -67,28 +176,71 @@ class ItemController extends Controller
             'price'               => ['required'],
             'item_title_ar'       => ['required'],
             'item_title_en'       => ['required'],
+
+            'First_offer'                   => ['required'],
+            'value_of_discount_first_offer' => ['required'],
+            'Second_offer'                  => ['required'],
+            'value_of_discount_Second_offer'=> ['required'],
+            'Third_offer'                   => ['required'],
+            'value_of_discount_Third_offer' => ['required']
         ]);
+    
         if($validator->fails()){
             return response()->json([
                 'status'       => '0',
                 'details'      => $validator->errors(), 422
             ]);
         }
+      $item = new Item;
+      
+      $user = Auth::user();
+      $id = Auth::id(); 
+
+            //   dd( Auth::id())    ;
         $data = [
-            'contact_information' => $request->contact_information,
-            'expiration_date'     => $request->expiration_date,
-            'quantity'            => $request->quantity,
-            'price'               => $request->price,
-       
-            'ar' => [
+             'user_id' => 1,
+             'contact_information' => $request->contact_information,
+             'expiration_date'     => $request->expiration_date,
+             'quantity'            => $request->quantity,
+             'price'               => $request->price,
+             'ar' => [
                 'title'   => $request->item_title_ar,
             ],
             'en' => [
                 'title'  => $request->item_title_en,
             ]
         ];
-      
+       
+
+        $expiration_date = $request->expiration_date;//اخدت تاريخ انتهاء الصلاحية من الداتابيز
+
+        $remaining_days = Carbon::now()->diffInDays(Carbon::parse($expiration_date)); //طرحت تاريخ انتهاء الصلاحية من تاريخ اليوم وهوة متغير
+
         $item = Item::create($data);
+        
+        $data_of_discount =
+        [
+            'item_id' => 1,//هون ما عرفت جيب ال ايدي تبع الايتم 
+        'First_offer'                   => $request->First_offer,
+        'value_of_discount_first_offer' => $request->value_of_discount_first_offer,
+        'Second_offer'                  => $request->Second_offer,
+        'value_of_discount_Second_offer'=> $request->value_of_discount_Second_offer,
+        'Third_offer'                   => $request->Third_offer,
+        'value_of_discount_Third_offer' => $request->value_of_discount_Third_offer,
+        ];
+        $offer= Offer::create($data_of_discount);
+
+
+
+        $item->Number_Of_Remaining_Day  = $remaining_days; /*  هاد الريمينينغ دايس هوة فرق بين تاريخ الانتهاء وتاريخ اليوم بس طالما انا استدعيتوعند انشاء ايتم جديد
+         ف هوة رح يتطبق مرة وحدة ويتسجل بل داتا بيز وخلص ما عاد يتعدل لانو ما عاد ئلو فوتة لهاد المكان مرة تانية*/
+
+        $item->save(); // هون  عملت سيف مشان عدد الايام الكلي يروح عل داتا بيز
+
+
+
+
+/*تحت مالي عامل شي ب كمالة التالبع عند الكاتيغوري */
         $item_categories = $request->category;
         if(!$item_categories == NULL) {
             $items_Array = explode("," , $item_categories);
@@ -97,6 +249,7 @@ class ItemController extends Controller
                     'category_id'=>  $cat,
                     'item_id'=> $item->id
                 ]);
+               
             }
         }         
         if($request->file('image')){
