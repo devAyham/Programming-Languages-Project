@@ -18,27 +18,34 @@ class AuthApiController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'last_name'  => ['required', 'string', 'max:255'],
             'email'      => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password'   => ['required', 'string', 'min:6', 'confirmed'],
-            'type'       => ['required'],
+            // 'password'   => ['required', 'string', 'min:6', ],
+           'password'   => ['required', 'string', 'min:6', 'confirmed'],
+            
 
         ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors(), 400);
-        }
+        if($validator->fails())
+                {
+                    return response()->json($validator->errors(), 400);
+                }
+
         $user = User::create([
             'first_name'     => $request['first_name'],
             'last_name'     => $request['last_name'],
             'email'    => $request['email'],
             'phone'    => $request['phone'],
             'password' => Hash::make($request['password']),
-            'type'     => $request->type,
-        ]);
+           
+         ]);
+         
         return response()->json([
             'message' => 'User successfully registered',
             'user' => $user
         ], 201);
     }
+
+
+
     protected function createNewToken($token){
         return response()->json([
             'access_token' => $token,
