@@ -17,7 +17,9 @@ class Offer extends Model
         'Third_offer',
         'value_of_discount_Third_offer'
     ];
-
-   
+    public function item()
+    {
+        return $this->belongsTo(Item::class, 'item_id');
+    }
 
 }

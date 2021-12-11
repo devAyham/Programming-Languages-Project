@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Validator;
 use Image;
 use Illuminate\Support\Facades\Storage;
-
+use App\Item ;
 
 class AuthApiController extends Controller
 {
@@ -19,7 +19,7 @@ class AuthApiController extends Controller
             'last_name'  => ['required', 'string', 'max:255'],
             'email'      => ['required', 'string', 'email', 'max:255', 'unique:users'],
             // 'password'   => ['required', 'string', 'min:6', ],
-           'password'   => ['required', 'string', 'min:6', 'confirmed'],
+            'password'   => ['required', 'string', 'min:6', 'confirmed'],
             
 
         ]);
@@ -35,9 +35,9 @@ class AuthApiController extends Controller
             'email'    => $request['email'],
             'phone'    => $request['phone'],
             'password' => Hash::make($request['password']),
-           
-         ]);
-         
+        
+        ]);
+        
         return response()->json([
             'message' => 'User successfully registered',
             'user' => $user

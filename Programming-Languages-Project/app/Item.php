@@ -34,5 +34,9 @@ class Item extends Model
     public function categories() {
         return $this->belongsTo(Category::class );
     }
+    public function offer()
+    {
+        return $this->hasone(Offer::class );
+    }
 }
 

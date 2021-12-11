@@ -7,7 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Tymon\JWTAuth\Contracts\JWTSubject;
+use Tymon\JWTAuth\Contracts\JWTSubject as JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -19,7 +19,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'first_name','last_name', 'email', 'password','is_email_verified','phone','type'
+        'first_name','last_name', 'email', 'password','is_email_verified','phone'
     ];
 
     /**
@@ -52,7 +52,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function item()
     {
-        return $this->hasMany(Item::class, );
+        return $this->hasMany(Item::class );
     }
 
     public function interact() {

@@ -20,7 +20,6 @@ class CreateInteractsTable extends Migration
             $table->integer('item_id');
             $table->timestamps();
 
-
             $table->foreign('user_id')
             ->references('id')->on('users')
             ->onDelete('cascade');

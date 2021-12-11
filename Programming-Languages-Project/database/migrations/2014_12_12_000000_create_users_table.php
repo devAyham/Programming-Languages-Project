@@ -23,12 +23,10 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->integer('phone')->nullable();
             $table->string('img')->nullable();
-          
             $table->rememberToken();
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      *
